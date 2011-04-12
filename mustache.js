@@ -98,18 +98,21 @@ var Mustache = function() {
       Renders inverted (^) and normal (#) sections
     */
     render_section: function(template, context, partials) {
-      if(!this.includes("#", template) && !this.includes("^", template)) {
+      if(!this.includes("#", template) && !this.includes("^", template) && !this.includes("?", template)) {
         return template;
       }
 
       var that = this;
       // CSW - Added "+?" so it finds the tighest bound, not the widest
-      var regex = new RegExp(this.otag + "(\\^|\\#)\\s*(.+)\\s*" + this.ctag +
+      var regex = new RegExp(this.otag + "(\\^|\\#|\\?)\\s*(.+)\\s*" + this.ctag +
               "\n*([\\s\\S]+?)" + this.otag + "\\/\\s*\\2\\s*" + this.ctag +
               "\\s*", "mg");
 
       // for each {{#foo}}{{/foo}} section do...
       return template.replace(regex, function(match, type, name, content) {
+        if (type == '?') {
+            name = name.substring(0, name.length - 1);
+        }
         var value = that.find(name, context);
         if(type == "^") { // inverted section
           if(!value || that.is_array(value) && value.length === 0) {
@@ -118,6 +121,12 @@ var Mustache = function() {
           } else {
             return "";
           }
+        } else if (type == '?') {
+          if (value && that.is_object(value) || that.is_array(value) && value.length) {
+            return that.render(content, context, partials, true);
+          } else {
+              return "";
+          };
         } else if(type == "#") { // normal section
           if(that.is_array(value)) { // Enumerable, Let's loop!
             return that.map(value, function(row) {
