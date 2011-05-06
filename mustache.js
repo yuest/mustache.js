@@ -30,7 +30,7 @@ var Mustache = function() {
           return template;
         } else {
           this.send(template);
-          return;
+          return '';
         }
       }
 
@@ -41,6 +41,7 @@ var Mustache = function() {
       }
 
       this.render_tags(html, context, partials, in_recursion);
+      return '';
     },
 
     /*
@@ -122,11 +123,11 @@ var Mustache = function() {
             return "";
           }
         } else if (type == '?') {
-          if (value && that.is_object(value) || that.is_array(value) && value.length) {
+          if (value || that.is_array(value) && value.length) {
             return that.render(content, context, partials, true);
           } else {
               return "";
-          };
+          }
         } else if(type == "#") { // normal section
           if(that.is_array(value)) { // Enumerable, Let's loop!
             return that.map(value, function(row) {
